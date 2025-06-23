@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import pytest
 from btree.tree import BTree
 from btree.node import BTreeNode 
+import icontract
 
 def create_initial_tree(t_val, initial_values):
     tree = BTree(t_val)
@@ -52,9 +53,10 @@ def test_insert_into_leaf_no_split_t3(capsys):
 def test_insert_duplicate_key(capsys):
     t = 2
     b_tree = create_initial_tree(t, [10, 20])
-    b_tree.insert(10) 
+    key_to_insert = 10
 
-    captured = capsys.readouterr()
+    with pytest.raises(icontract.errors.ViolationError) as excinfo:
+        b_tree.insert(key_to_insert)
 
-    expected_message = "A chave 10 já existe na árvore. Nenhuma ação foi tomada."
-    assert expected_message in captured.out
+    expected_message_part = "Key to be inserted must not exist in the tree."
+    assert expected_message_part in str(excinfo.value)

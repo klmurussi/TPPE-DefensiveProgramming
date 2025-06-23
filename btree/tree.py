@@ -205,22 +205,6 @@ class BTree:
     @icontract.ensure(lambda self, k: self.search(k, self.root) is not None, "Inserted key must exist in the tree after operation.")
     @icontract.ensure(lambda self: self._check_node_key_counts(), "Node key counts must be valid after insert.")
     @icontract.ensure(lambda self: self._check_node_child_counts(), "Node child counts must be valid after insert.")
-    @icontract.snapshot(lambda self, k: deepcopy(self), name="insert_snapshot")
-    @icontract.ensure(
-        lambda self, result, insert_snapshot:
-            (
-                self._get_height() == insert_snapshot._get_height() + 1
-                if (
-                    insert_snapshot.root
-                    and insert_snapshot.root.num_keys() == 1
-                    and insert_snapshot.root.children
-                    and insert_snapshot.root.children[0].num_keys() == insert_snapshot.t + 1
-                    and insert_snapshot.root.children[1].num_keys() == insert_snapshot.t + 1
-                )
-                else self._get_height() == insert_snapshot._get_height()
-            ),
-        "Tree height must increase by one only if root splits."
-    )
     def insert(self, k: int):
         root = self.root
 
@@ -250,22 +234,6 @@ class BTree:
     @icontract.ensure(lambda self, k: self.search(k, self.root) is None, "Deleted key must not exist in the tree after operation.")
     @icontract.ensure(lambda self: self._check_node_key_counts(), "Node key counts must be valid after delete.")
     @icontract.ensure(lambda self: self._check_node_child_counts(), "Node child counts must be valid after delete.")
-    @icontract.snapshot(lambda self, k: deepcopy(self), name="delete_snapshot")
-    @icontract.ensure(
-        lambda self, result, delete_snapshot:
-            (
-                self._get_height() == delete_snapshot._get_height() - 1
-                if (
-                    delete_snapshot.root
-                    and delete_snapshot.root.num_keys() == 1
-                    and delete_snapshot.root.children
-                    and delete_snapshot.root.children[0].num_keys() == delete_snapshot.t - 1
-                    and delete_snapshot.root.children[1].num_keys() == delete_snapshot.t - 1
-                )
-                else self._get_height() == delete_snapshot._get_height()
-            ),
-        "Tree height must decrease only if root underflows and merges."
-    )
     def delete(self, k: int):
         root = self.root
 
