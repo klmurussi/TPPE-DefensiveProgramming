@@ -1,6 +1,4 @@
-pip install -r requirements.txt
-
-# TPPE (Trabalho Pŕatico 1): Implementação de B-Tree em Python usando icontract
+# TPPE (Trabalho Prático 1): Implementação de B-Tree em Python usando icontract
 
 Este repositório contém a implementação de uma B-Tree (Árvore B) em Python, focando na correta aplicação de suas propriedades e no uso de **Programação por Contrato** (`icontract`) para garantir a robustez e a correção do algoritmo. O projeto inclui testes utilizando `pytest` para validação das operações.
 
@@ -10,6 +8,14 @@ Uma B-Tree é uma estrutura de dados de árvore de busca auto-balanceada que man
 
 Este trabalho implementa as principais operações de uma B-Tree de grau mínimo `t`, incluindo o complexo algoritmo de exclusão com suas regras de rebalanceamento (divisão, redistribuição e fusão).
 
+# 🛡️ Programação Defensiva
+
+Este projeto adota os princípios de Programação Defensiva para antecipar, detectar e mitigar erros. Isso é realizado através de:
+
+- **Programação por Contrato (icontract):** Definição de pré-condições, pós-condições e invariantes nas funções principais.
+- **Testes Abrangentes (pytest):** Para validar tanto cenários comuns quanto casos extremos e de falha.
+- **Mensagens de Erro Claras:** Erros são tratados com assertivas e mensagens que ajudam na identificação rápida do problema.
+  
 ## ✨ Funcionalidades
 
   * **Inserção de Chaves:** Implementa o algoritmo de inserção, incluindo a divisão de nós (`split`) que se propagam da folha para a raiz.
@@ -42,7 +48,22 @@ Para configurar o ambiente de desenvolvimento e executar o projeto, siga os pass
     source venv/bin/activate  # No Linux/macOS
     ```
 
-3.  **Instale as Dependências:**
+3. **Instale as Dependências:**
+
+    Você pode instalar as dependências de duas formas:
+
+    **Usando o arquivo `requirements.txt`:**
+
+       ```text
+    pytest>=7.0.0
+    icontract>=2.6.1
+    ```
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+    **Ou instalando manualmente:**
 
     ```bash
     pip install pytest icontract
@@ -69,26 +90,31 @@ pytest
 ## 📦 Estrutura do Projeto
 
 ```
-TPPE-DefensiveProgrammin/
+TPPE-DefensiveProgramming/
 ├── btree/
-│   ├── __init__.py      # Pacote Python
-│   ├── tree.py          # Implementação da classe BTree e seus métodos
-│   └── node.py          # Implementação da classe BTreeNode
+│   ├── __init__.py         # Pacote Python
+│   ├── tree.py             # Implementação da classe BTree e seus métodos
+│   └── node.py             # Implementação da classe BTreeNode
 ├── tests/
-|  ├── __init__.py      # Pacote Python para testes
-|   ├── unit/
-|   │   ├── __init__.py
-|   │   ├── test_delete.py   # Testes para a função delete()
-|   │   ├── test_insert.py   # Testes para a função insert()
-|   │   └── test_tree.py     # Testes para funcionalidades básicas (como print_bfs)
-|   └── mocks/
-|       ├── __init__.py
-|       └── tree_mocks.py    # Funções para criar árvores mockadas para testes específicos
-├── main.py/
-└── README.md/
+│   ├── __init__.py         # Pacote Python para testes
+│   ├── unit/
+│   │   ├── __init__.py
+│   │   ├── test_delete.py  # Testes para a função delete()
+│   │   ├── test_insert.py  # Testes para a função insert()
+│   │   └── test_tree.py    # Testes para funcionalidades básicas (como print_bfs)
+│   └── mocks/
+│       ├── __init__.py
+│       └── tree_mocks.py   # Funções para criar árvores mockadas para testes específicos
+├── main.py                 # Script principal
+├── requirements.txt        # Dependências do projeto
+└── README.md               # Documentação
 ```
+
+## 📄 Licença
+
+Este projeto está licenciado sob a Licença MIT - consulte o arquivo [LICENSE](LICENSE) para detalhes.
 
 ## 👥 Membros
 
-**[Kathlyn Lara Murussi](https://github.com/klmurussi)** - 180042378
-**[Ingrid Soares](https://github.com/ingrdsoares)** - 160125162
+- **[Kathlyn Lara Murussi](https://github.com/klmurussi)** - 180042378
+- **[Ingrid Soares](https://github.com/ingrdsoares)** - 160125162
