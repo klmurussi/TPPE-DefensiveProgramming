@@ -44,8 +44,10 @@ class BTree:
         if node.leaf:
             return None
 
-        return self.search(k, node.children[i])
+        if not node.children:
+            return None
 
+        return self.search(k, node.children[i])
 
     def print_tree_bfs(self):
         if self.root is None or not self.root.keys:
@@ -73,3 +75,68 @@ class BTree:
 
         if current_line_parts:
             print(" ".join(current_line_parts))
+    
+    def _split_child(self, parent: BTreeNode, child_index: int):
+        t = self.t
+        full_child = parent.children[child_index]
+        new_node = BTreeNode(t, leaf=full_child.leaf)
+
+        mid_key = full_child.keys[t - 1]
+
+        new_node.keys = full_child.keys[t:]
+
+        full_child.keys = full_child.keys[:t - 1]
+
+        if not full_child.leaf:
+            new_node.children = full_child.children[t:]
+            full_child.children = full_child.children[:t]
+
+        parent.children.insert(child_index + 1, new_node)
+        parent.keys.insert(child_index, mid_key)
+        parent.orderkeys() 
+
+    def insert_non_full(self, node: BTreeNode, k: int):
+        node.keys.append(k)
+        node.orderkeys()
+
+    def bottom_up_correction(self, node_to_check: BTreeNode, path_to_root: list):
+        current_node = node_to_check
+
+        while current_node.is_full():
+            if not path_to_root:
+                t = self.t
+                new_root = BTreeNode(t, leaf=False)
+                new_root.children.append(current_node)
+
+                self._split_child(new_root, 0)
+                self.root = new_root
+                break
+            else:
+                parent, child_index_in_parent = path_to_root.pop()
+                self._split_child(parent, child_index_in_parent)
+                current_node = parent
+
+    def insert(self, k: int):
+        root = self.root
+
+        if self.search(k, self.root): 
+            print(f"A chave {k} já existe na árvore. Nenhuma ação foi tomada.")
+            return
+
+        if root.num_keys() == 0:
+            self.insert_non_full(root, k)
+            return
+
+        current_node = self.root
+        parent_path = []
+
+        while not current_node.leaf:
+            i = 0
+            while i < len(current_node.keys) and k > current_node.keys[i]:
+                i += 1
+
+            parent_path.append((current_node, i))
+            current_node = current_node.children[i]
+
+        self.insert_non_full(current_node, k)
+        self.bottom_up_correction(current_node, parent_path)

@@ -19,10 +19,13 @@ class BTreeNode:
         return len(self.keys)
 
     def is_full(self) -> bool:
-        return self.num_keys() == (2 * self.t - 1)
+        return self.num_keys() == (2 * self.t)
 
     def is_empty(self) -> bool:
         return self.num_keys() == 0
 
     def display_string(self) -> str:
         return f"[{', '.join(map(str, self.keys))}]"
+
+    def orderkeys(self):
+        self.keys.sort()
