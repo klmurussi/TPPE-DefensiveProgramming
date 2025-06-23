@@ -115,4 +115,4 @@ TPPE-DefensiveProgramming/
 - **[Kathlyn Lara Murussi](https://github.com/klmurussi)** - 180042378
 - **[Ingrid Soares](https://github.com/ingrdsoares)** - 160125162
 - **[Pedro Moraes](https://github.com/ingrdsoares)** - 
-- **[Pablo Heika](https://github.com/ingrdsoares)** - 
+- **[Pablo S. Costa](https://github.com/pabloheika)** - 180128817
