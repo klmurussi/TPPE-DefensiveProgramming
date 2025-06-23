@@ -91,3 +91,4 @@ TPPE-DefensiveProgrammin/
 ## 👥 Membros
 
 **[Kathlyn Lara Murussi](https://github.com/klmurussi)** - 180042378
+**[Ingrid Soares](https://github.com/ingrdsoares)** - 160125162
