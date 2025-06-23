@@ -2,8 +2,6 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 import pytest
-from btree.tree import BTree
-from btree.node import BTreeNode
 import icontract
 from tests.mocks.tree_mocks import create_borrow_test_tree_t4, create_delete_propagate_underflow_test_tree, create_tree_for_predecessor_test, create_tree_for_successor_test, create_tree_for_merge_case_test
 

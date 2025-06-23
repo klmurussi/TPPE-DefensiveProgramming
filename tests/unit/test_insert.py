@@ -4,7 +4,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 import pytest
 from btree.tree import BTree
-from btree.node import BTreeNode 
 import icontract
 
 def create_initial_tree(t_val, initial_values):

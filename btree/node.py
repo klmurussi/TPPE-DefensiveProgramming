@@ -1,4 +1,4 @@
-from icontract import require, ensure
+from icontract import require
 
 class BTreeNode:
     @require(lambda t: t >= 2)
@@ -15,7 +15,6 @@ class BTreeNode:
         return len(self.keys)
 
     def is_full(self) -> bool:
-        # na vdd, ele está cheio com 2 * t -1
         return self.num_keys() == (2 * self.t)
 
     def is_empty(self) -> bool:
