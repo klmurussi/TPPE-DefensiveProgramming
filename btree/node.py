@@ -8,10 +8,6 @@ class BTreeNode:
         self.keys = []
         self.children = []
 
-    @ensure(lambda self: all(self.keys[i] <= self.keys[i+1] for i in range(len(self.keys) - 1)))
-    def validate_ordered_keys(self):
-        pass
-
     def __str__(self):
         return f"{'Folha' if self.leaf else 'Interno'} - Chaves: {self.keys}"
 
@@ -19,6 +15,7 @@ class BTreeNode:
         return len(self.keys)
 
     def is_full(self) -> bool:
+        # na vdd, ele está cheio com 2 * t -1
         return self.num_keys() == (2 * self.t)
 
     def is_empty(self) -> bool:

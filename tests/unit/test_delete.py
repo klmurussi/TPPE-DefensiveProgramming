@@ -4,31 +4,18 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 import pytest
 from btree.tree import BTree
 from btree.node import BTreeNode
+import icontract
 from tests.mocks.tree_mocks import create_borrow_test_tree_t4, create_delete_propagate_underflow_test_tree, create_tree_for_predecessor_test, create_tree_for_successor_test, create_tree_for_merge_case_test
 
 def test_delete_non_existing_key(capsys):
     b_tree = create_borrow_test_tree_t4()
+    key_to_delete = 2
 
-    expected_message = "A chave 2 não existe na árvore. Nenhuma ação foi tomada."
+    with pytest.raises(icontract.errors.ViolationError) as excinfo:
+        b_tree.delete(key_to_delete)
 
-    key_to_delete = 2 
-
-    capsys.readouterr() 
-    b_tree.delete(key_to_delete)
-    captured = capsys.readouterr() 
-
-    assert expected_message in captured.out
-    
-    capsys.readouterr()
-    b_tree.print_tree_bfs()
-    tree_after_delete_output = capsys.readouterr().out
-
-    expected_tree_structure = (
-        "[20, 40, 60, 85, 105, 125]\n"
-        "[1, 5, 10, 15] [25, 30, 35] [45, 50, 55] [65, 70, 75, 80] [90, 95, 100] [110, 115, 120] [130, 135, 140]\n"
-    )
-    assert tree_after_delete_output == expected_tree_structure, \
-        f"A árvore foi modificada indevidamente!\nEsperado:\n{expected_tree_structure}\nObtido:\n{tree_after_delete_output}"
+    expected_message_part = "Key to be deleted must exist in the tree."
+    assert expected_message_part in str(excinfo.value)
 
 def test_delete_from_leaf_causes_redistribution_left_borrow(capsys):
     b_tree = create_borrow_test_tree_t4()

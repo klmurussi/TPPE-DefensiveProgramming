@@ -1,18 +1,21 @@
-from icontract import ensure
+import icontract
 from collections import deque
 from .node import BTreeNode
+from copy import deepcopy
 
+@icontract.invariant(lambda self: self._check_all_leaves_at_same_level(), "All leaves must be at the same level in the B-tree.")
+@icontract.invariant(lambda self: self._check_all_keys_ordered(), "All keys must be in increasing order within all nodes.")
 class BTree:
     def __init__(self, t: int):
         self.t = t
         self.root = BTreeNode(t, leaf=True)
 
     def _check_all_leaves_at_same_level(self) -> bool:
-        if not self.root or not self.root.keys:
+        if not self.root or self.root.num_keys() == 0:
             return True
 
         leaf_level = -1
-        q = deque([(self.root, 0)]) # Use deque para popleft
+        q = deque([(self.root, 0)])
 
         while q:
             current_node, level = q.popleft()
@@ -24,12 +27,94 @@ class BTree:
                     return False
             else:
                 for child in current_node.children:
-                    q.append((child, level + 1))
+                    if child:
+                        q.append((child, level + 1))
         return True
 
-    @ensure(lambda result: result is None or \
-                           (isinstance(result, tuple) and len(result) == 2 and \
-                            isinstance(result[0], BTreeNode) and isinstance(result[1], int)))
+    def _check_all_keys_ordered(self) -> bool:
+        if not self.root:
+            return True
+        q = deque([self.root])
+        while q:
+            node = q.popleft()
+            if not all(node.keys[i] <= node.keys[i+1] for i in range(node.num_keys() - 1)):
+                return False
+            if not node.leaf:
+                for child in node.children:
+                    if child:
+                        q.append(child)
+        return True
+
+    @icontract.ensure(lambda self, result: isinstance(result, bool))
+    def _check_node_key_counts(self) -> bool:
+        if not self.root:
+            return True
+        q = deque([self.root])
+        while q:
+            node = q.popleft()
+            if node == self.root:
+                if not (1 <= node.num_keys() <= (2 * self.t - 1)):
+                    return False
+            else:
+                if not (self.t - 1 <= node.num_keys() <= (2 * self.t - 1)):
+                    return False
+            if not node.leaf:
+                for child in node.children:
+                    if child:
+                        q.append(child)
+        return True
+
+    @icontract.ensure(lambda self, result: isinstance(result, bool))
+    def _check_node_child_counts(self) -> bool:
+        if not self.root:
+            return True
+
+        if self.root.leaf:
+            if self.root.num_children() != 0:
+                return False
+            return True
+
+        q = deque([self.root])
+        while q:
+            node = q.popleft()
+            if node.leaf:
+                if node.num_children() != 0:
+                    return False
+                continue
+
+            if node == self.root:
+                if not (2 <= node.num_children() <= (2 * self.t)):
+                    return False
+            else:
+                if not (self.t <= node.num_children() <= (2 * self.t)):
+                    return False
+
+            if node.num_children() != node.num_keys() + 1:
+                return False
+
+            for child in node.children:
+                if child:
+                    q.append(child)
+                else:
+                    return False
+        return True
+
+    @icontract.ensure(lambda result: result >= 0)
+    def _get_height(self) -> int:
+        if not self.root or self.root.num_keys() == 0:
+            return 0
+
+        q = deque([(self.root, 0)])
+        height = 0
+        while q:
+            current_node, level = q.popleft()
+            height = max(height, level)
+            if not current_node.leaf:
+                for child in current_node.children:
+                    if child:
+                        q.append((child, level + 1))
+        return height
+
     def search(self, k: int, node: BTreeNode = None):
         if node is None:
             node = self.root
@@ -53,18 +138,18 @@ class BTree:
         if self.root is None or not self.root.keys:
             return
 
-        queue = deque([(self.root, 0)]) 
+        queue = deque([(self.root, 0)])
 
-        current_level = 0              
+        current_level = 0
         current_line_parts = []
 
         while queue:
-            node, level = queue.popleft() 
+            node, level = queue.popleft()
 
             if level > current_level:
-                print(" ".join(current_line_parts)) 
-                current_line_parts = []             
-                current_level = level              
+                print(" ".join(current_line_parts))
+                current_line_parts = []
+                current_level = level
 
             current_line_parts.append(node.display_string())
 
@@ -75,7 +160,7 @@ class BTree:
 
         if current_line_parts:
             print(" ".join(current_line_parts))
-    
+
     def _split_child(self, parent: BTreeNode, child_index: int):
         t = self.t
         full_child = parent.children[child_index]
@@ -93,7 +178,7 @@ class BTree:
 
         parent.children.insert(child_index + 1, new_node)
         parent.keys.insert(child_index, mid_key)
-        parent.orderkeys() 
+        parent.orderkeys()
 
     def insert_non_full(self, node: BTreeNode, k: int):
         node.keys.append(k)
@@ -116,10 +201,30 @@ class BTree:
                 self._split_child(parent, child_index_in_parent)
                 current_node = parent
 
+    @icontract.require(lambda self, k: self.search(k, self.root) is None, "Key to be inserted must not exist in the tree.")
+    @icontract.ensure(lambda self, k: self.search(k, self.root) is not None, "Inserted key must exist in the tree after operation.")
+    @icontract.ensure(lambda self: self._check_node_key_counts(), "Node key counts must be valid after insert.")
+    @icontract.ensure(lambda self: self._check_node_child_counts(), "Node child counts must be valid after insert.")
+    @icontract.snapshot(lambda self, k: deepcopy(self), name="insert_snapshot")
+    @icontract.ensure(
+        lambda self, result, insert_snapshot:
+            (
+                self._get_height() == insert_snapshot._get_height() + 1
+                if (
+                    insert_snapshot.root
+                    and insert_snapshot.root.num_keys() == 1
+                    and insert_snapshot.root.children
+                    and insert_snapshot.root.children[0].num_keys() == insert_snapshot.t + 1
+                    and insert_snapshot.root.children[1].num_keys() == insert_snapshot.t + 1
+                )
+                else self._get_height() == insert_snapshot._get_height()
+            ),
+        "Tree height must increase by one only if root splits."
+    )
     def insert(self, k: int):
         root = self.root
 
-        if self.search(k, self.root): 
+        if self.search(k, self.root):
             print(f"A chave {k} já existe na árvore. Nenhuma ação foi tomada.")
             return
 
@@ -141,10 +246,30 @@ class BTree:
         self.insert_non_full(current_node, k)
         self.bottom_up_correction(current_node, parent_path)
 
+    @icontract.require(lambda self, k: self.search(k, self.root) is not None, "Key to be deleted must exist in the tree.")
+    @icontract.ensure(lambda self, k: self.search(k, self.root) is None, "Deleted key must not exist in the tree after operation.")
+    @icontract.ensure(lambda self: self._check_node_key_counts(), "Node key counts must be valid after delete.")
+    @icontract.ensure(lambda self: self._check_node_child_counts(), "Node child counts must be valid after delete.")
+    @icontract.snapshot(lambda self, k: deepcopy(self), name="delete_snapshot")
+    @icontract.ensure(
+        lambda self, result, delete_snapshot:
+            (
+                self._get_height() == delete_snapshot._get_height() - 1
+                if (
+                    delete_snapshot.root
+                    and delete_snapshot.root.num_keys() == 1
+                    and delete_snapshot.root.children
+                    and delete_snapshot.root.children[0].num_keys() == delete_snapshot.t - 1
+                    and delete_snapshot.root.children[1].num_keys() == delete_snapshot.t - 1
+                )
+                else self._get_height() == delete_snapshot._get_height()
+            ),
+        "Tree height must decrease only if root underflows and merges."
+    )
     def delete(self, k: int):
         root = self.root
 
-        if not self.search(k, self.root): 
+        if not self.search(k, self.root):
             print(f"A chave {k} não existe na árvore. Nenhuma ação foi tomada.")
             return
 
@@ -152,8 +277,8 @@ class BTree:
 
         if self.root.num_keys() == 0 and not self.root.leaf:
              self.root = self.root.children[0]
-             
-        print(f"Chave {k} removida com sucesso.") 
+
+        print(f"Chave {k} removida com sucesso.")
 
     def _delete_recursive(self, node: BTreeNode, k: int):
         i = 0
@@ -181,7 +306,7 @@ class BTree:
 
         if not child_node.is_underflow():
             return
-        
+
         if child_index > 0 and parent_node.children[child_index - 1].num_keys() >= t:
             self._borrow_from_left(parent_node, child_index)
         elif child_index < parent_node.num_children() - 1 and parent_node.children[child_index + 1].num_keys() >= t:
@@ -189,7 +314,7 @@ class BTree:
         else:
             if child_index > 0:
                 self._merge_nodes(parent_node, child_index - 1)
-            else: 
+            else:
                 self._merge_nodes(parent_node, child_index)
 
     def _borrow_from_left(self, parent_node, child_index):
@@ -197,14 +322,14 @@ class BTree:
         left_sibling = parent_node.children[child_index - 1]
 
         child_node.keys.insert(0, parent_node.keys[child_index - 1])
-        child_node.orderkeys() 
+        child_node.orderkeys()
 
         parent_node.keys[child_index - 1] = left_sibling.keys.pop()
-        left_sibling.orderkeys() 
+        left_sibling.orderkeys()
 
         if not left_sibling.leaf:
             child_node.children.insert(0, left_sibling.children.pop())
-        
+
         print("emprestar")
 
     def _borrow_from_right(self, parent_node, child_index):
@@ -212,10 +337,10 @@ class BTree:
         right_sibling = parent_node.children[child_index + 1]
 
         child_node.keys.append(parent_node.keys[child_index])
-        child_node.orderkeys() 
+        child_node.orderkeys()
 
         parent_node.keys[child_index] = right_sibling.keys.pop(0)
-        right_sibling.orderkeys() 
+        right_sibling.orderkeys()
 
         if not right_sibling.leaf:
              child_node.children.append(right_sibling.children.pop(0))
@@ -229,63 +354,63 @@ class BTree:
 
         left_child.keys.append(key_from_parent)
         left_child.keys.extend(right_child.keys)
-        left_child.orderkeys() 
+        left_child.orderkeys()
 
         if not left_child.leaf:
             left_child.children.extend(right_child.children)
 
         parent.children.pop(child_index_left + 1)
         parent.keys.pop(child_index_left)
-        parent.orderkeys() 
+        parent.orderkeys()
 
         if parent == self.root and parent.num_keys() == 0 and not parent.leaf:
             self.root = left_child
 
     def _find_predecessor(self, node: BTreeNode):
         while not node.leaf:
-            node = node.children[node.num_keys()] 
-        return (node, node.num_keys() - 1) 
+            node = node.children[node.num_keys()]
+        return (node, node.num_keys() - 1)
 
     def _find_successor(self, node: BTreeNode):
         while not node.leaf:
-            node = node.children[0] 
-        return (node, 0) 
+            node = node.children[0]
+        return (node, 0)
 
     def _delete_internal_node_key(self, node: BTreeNode, key_index: int):
         t = self.t
-        k_to_delete = node.keys[key_index] 
+        k_to_delete = node.keys[key_index]
 
-        left_child = node.children[key_index]      
-        right_child = node.children[key_index + 1] 
+        left_child = node.children[key_index]
+        right_child = node.children[key_index + 1]
 
         if left_child.num_keys() >= t:
             predecessor_node, predecessor_idx_in_node = self._find_predecessor(left_child)
             predecessor_key = predecessor_node.keys[predecessor_idx_in_node]
-            
+
             node.keys[key_index] = predecessor_key
-            node.orderkeys() 
+            node.orderkeys()
 
             self._delete_recursive(left_child, predecessor_key)
-        
+
         elif right_child.num_keys() >= t:
             successor_node, successor_idx_in_node = self._find_successor(right_child)
             successor_key = successor_node.keys[successor_idx_in_node]
 
             node.keys[key_index] = successor_key
-            node.orderkeys() 
+            node.orderkeys()
 
             self._delete_recursive(right_child, successor_key)
-        
+
         else:
             left_child.keys.append(k_to_delete)
             left_child.keys.extend(right_child.keys)
-            left_child.orderkeys() 
+            left_child.orderkeys()
 
             if not left_child.leaf:
                 left_child.children.extend(right_child.children)
 
             node.keys.pop(key_index)
-            node.children.pop(key_index + 1) 
-            node.orderkeys() 
+            node.children.pop(key_index + 1)
+            node.orderkeys()
 
             self._delete_recursive(left_child, k_to_delete)
