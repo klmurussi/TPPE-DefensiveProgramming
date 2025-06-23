@@ -1,9 +1,6 @@
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-import pytest
-from btree.tree import BTree
-from btree.node import BTreeNode
 from tests.mocks.tree_mocks import create_bfs_display_test_tree_t3
 
 def test_print_tree_bfs_output(capsys):

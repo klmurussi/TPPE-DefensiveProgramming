@@ -1,8 +1,7 @@
-# main.py
 from btree.tree import BTree
 
 if __name__ == "__main__":
-    b_tree = BTree(t=2) # Grau mínimo 2, significando 2-3 tree
+    b_tree = BTree(t=2)
     keys = []
 
     while True:
