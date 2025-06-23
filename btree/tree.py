@@ -201,20 +201,27 @@ class BTree:
                 self._split_child(parent, child_index_in_parent)
                 current_node = parent
 
+    @icontract.snapshot(lambda self: self._get_height(), name="old_height_value")
     @icontract.require(lambda self, k: self.search(k, self.root) is None, "Key to be inserted must not exist in the tree.")
     @icontract.ensure(lambda self, k: self.search(k, self.root) is not None, "Inserted key must exist in the tree after operation.")
     @icontract.ensure(lambda self: self._check_node_key_counts(), "Node key counts must be valid after insert.")
     @icontract.ensure(lambda self: self._check_node_child_counts(), "Node child counts must be valid after insert.")
+    @icontract.ensure(
+            lambda self, result:
+                (self._get_height() == result) or (self._get_height() == result + 1),
+                "Altura após inserção deve ser a mesma ou aumentar em 1"
+        )
     def insert(self, k: int):
         root = self.root
+        old_height = self._get_height()
 
         if self.search(k, self.root):
             print(f"A chave {k} já existe na árvore. Nenhuma ação foi tomada.")
-            return
+            return old_height
 
         if root.num_keys() == 0:
             self.insert_non_full(root, k)
-            return
+            return old_height
 
         current_node = self.root
         parent_path = []
@@ -230,10 +237,17 @@ class BTree:
         self.insert_non_full(current_node, k)
         self.bottom_up_correction(current_node, parent_path)
 
+        return old_height
+
     @icontract.require(lambda self, k: self.search(k, self.root) is not None, "Key to be deleted must exist in the tree.")
     @icontract.ensure(lambda self, k: self.search(k, self.root) is None, "Deleted key must not exist in the tree after operation.")
     @icontract.ensure(lambda self: self._check_node_key_counts(), "Node key counts must be valid after delete.")
     @icontract.ensure(lambda self: self._check_node_child_counts(), "Node child counts must be valid after delete.")
+    @icontract.ensure(
+        lambda self, result:
+            self._get_height() == result or self._get_height() == result - 1,
+        description="Altura após fusão deve ser a mesma ou diminuir em 1"
+    )
     def delete(self, k: int):
         root = self.root
 
@@ -241,12 +255,15 @@ class BTree:
             print(f"A chave {k} não existe na árvore. Nenhuma ação foi tomada.")
             return
 
+        old_height = self._get_height()
+
         self._delete_recursive(self.root, k)
 
         if self.root.num_keys() == 0 and not self.root.leaf:
              self.root = self.root.children[0]
 
         print(f"Chave {k} removida com sucesso.")
+        return old_height
 
     def _delete_recursive(self, node: BTreeNode, k: int):
         i = 0

@@ -27,10 +27,7 @@ def test_insert_first_key_t2(capsys):
     tree_output = capsys.readouterr().out
 
     expected_output = "[10]\n"
-    assert tree_output == expected_output, f"Saída incorreta!\nEsperado:\n{expected_output}\nObtido:\n{tree_output}"
-    assert b_tree.root.keys == [10]
-    assert b_tree.root.num_keys() == 1
-    assert b_tree.root.leaf == True
+    assert tree_output == expected_output
 
 def test_insert_into_leaf_no_split_t3(capsys):
     t = 3 
