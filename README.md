@@ -54,7 +54,7 @@ Para configurar o ambiente de desenvolvimento e executar o projeto, siga os pass
 
     **Usando o arquivo `requirements.txt`:**
 
-       ```text
+    ```bash
     pytest>=7.0.0
     icontract>=2.6.1
     ```
@@ -118,3 +118,5 @@ Este projeto está licenciado sob a Licença MIT - consulte o arquivo [LICENSE](
 
 - **[Kathlyn Lara Murussi](https://github.com/klmurussi)** - 180042378
 - **[Ingrid Soares](https://github.com/ingrdsoares)** - 160125162
+- **[Pedro Moraes](https://github.com/ingrdsoares)** - 160125162
+- **[Pablo Heika](https://github.com/ingrdsoares)** - 160125162
