@@ -29,3 +29,9 @@ class BTreeNode:
 
     def orderkeys(self):
         self.keys.sort()
+
+    def is_underflow(self) -> bool:
+        return self.num_keys() == (self.t - 2)
+
+    def num_children(self) -> int:
+        return len(self.children)
