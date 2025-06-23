@@ -110,13 +110,9 @@ TPPE-DefensiveProgramming/
 └── README.md               # Documentação
 ```
 
-## 📄 Licença
-
-Este projeto está licenciado sob a Licença MIT - consulte o arquivo [LICENSE](LICENSE) para detalhes.
-
 ## 👥 Membros
 
 - **[Kathlyn Lara Murussi](https://github.com/klmurussi)** - 180042378
 - **[Ingrid Soares](https://github.com/ingrdsoares)** - 160125162
-- **[Pedro Moraes](https://github.com/ingrdsoares)** - 160125162
-- **[Pablo Heika](https://github.com/ingrdsoares)** - 160125162
+- **[Pedro Moraes](https://github.com/ingrdsoares)** - 
+- **[Pablo Heika](https://github.com/ingrdsoares)** - 
